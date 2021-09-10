@@ -11,17 +11,27 @@ let errorFailure;
 // ░░░░░░░░░▓ FUNCTION THAT GETS CALLED FROM THE MENU ITEM
 function closeOutButton() {
 	
-	const cell = ss.getActiveSheet().getCurrentCell();
-	const epLabel = cell.getValue();
-	const thisRow = cell.getRow();
-	const adLabel = adInput(thisRow);
-	
+	const foundRow = findRow();
+	const epLabel = tab2.getRange("G" + foundRow).getValue();
+	const adLabel = adInput(foundRow);
+
+	rowDiag = foundRow;
 	adDiag = adLabel[0];
-	epDiag = epLabel;
-	rowDiag = thisRow;
-	
+	if (epLabel == ""){ epDiag = "Submitting nothing" }
+	else { epDiag = epLabel;}
+
 	getYoutubeData();
 	findMatches(epLabel, adLabel);
+}
+
+// ░░░░░░░░░▓ FIND THE LOWEST WHITE BACKGROUND ROW (UNPUBLISHED) IN TAB 2
+function findRow(){
+
+	let rowCand2D = tab2.getRange("G1:G40").getBackgrounds();	// returns a 2D array of all background values in first 40 rows
+	let rowCandidates = [].concat.apply([], rowCand2D);			// converts rowCand2D from a 2D array to a 1D array
+	let foundRow = rowCandidates.lastIndexOf("#ffffff");		// returns last row of white background (counting from 0)
+	
+	return foundRow + 1;
 }
 
 // ░░░░░░░░░▓ FILTERS THE SPONSOR DATA TO REMOVE EVERYTHING AFTER " ("
@@ -85,13 +95,10 @@ function errorCheck(eps, ads){
 		const htmlForModal = HtmlService.createTemplateFromFile("COB-error");
 		const htmlOutput = htmlForModal.evaluate();
 			htmlOutput.setWidth(430);
-			htmlOutput.setHeight(90);
+			htmlOutput.setHeight(110);
 		const ui = SpreadsheetApp.getUi();
 			ui.showModalDialog(htmlOutput, "Episode Error");
-	} else {
-		submitDataTab2(rowDiag);
-		closeOutEp(eps, ads);
-		
+	} else {		
 		if (ads[0] == null){
 			errorMessage = "Your episode closed successfully, but your ad didn't.";
 			errorFailure = adDiag;
@@ -103,6 +110,8 @@ function errorCheck(eps, ads){
 			const ui = SpreadsheetApp.getUi();
 				ui.showModalDialog(htmlOutput, "Sponsor Error");
 		} else {
+			submitDataTab2(rowDiag);
+			closeOutEp(eps, ads);
 			closeOutAd(ads);
 		}
 	}
