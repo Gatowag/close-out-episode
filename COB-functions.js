@@ -17,9 +17,7 @@ function closeOutButton() {
 
 	rowDiag = foundRow;
 	adDiag = adLabel[0];
-	if (epLabel == ""){ epDiag = "Submitting nothing" }
-	else { epDiag = epLabel;}
-
+	isEpMissing(epLabel);
 	getYoutubeData();
 	findMatches(epLabel, adLabel);
 }
@@ -41,6 +39,12 @@ function adInput(row){
 	} else {
 		return tab2.getRange("K" + row).getValue().match(/.*?(?= \()/);
 	};
+}
+
+// ░░░░░░░░░▓ IF NO TEXT IS FOUND FOR EPISODE TITLE, CUSTOM ERROR MESSAGE IS PASSED TO epDiag
+function isEpMissing(ep){
+	if (ep == ""){ epDiag = "Submitting nothing" }
+	else { epDiag = ep }
 }
 
 // ░░░░░░░░░▓ PULLS YOUTUBE DATA, STORES IT IN GLOBAL VARIABLE "UPLOADS"
