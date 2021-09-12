@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base target="_top">
+		<!-- Bootstrap CSS -->
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+			
+		<?!= include('FET-style') ?>
+	</head>
+	<body>
+
+		<div class="d-flex justify-content-center pt-n4">
+			<span><small>
+				Oh no! <?!= errorMessage ?>
+			</small></span>
+		</div>
+
+		<div class="d-flex justify-content-center pt-3">
+				Your input was <code class="mt-1 ms-1 me-1"> <?!= errorFailure ?> </code> which doesn't
+		</div>
+		<div class="d-flex justify-content-center mt-n1">
+			match anything in the production order tab.
+		</div>
+
+		<div class="d-flex justify-content-center pt-2">
+			<span>Did you mean</span>
+				<code class="ms-2 me-1 mt-1">
+					<?!= bestAdMatch ?>
+				</code>
+			<span>?</span>
+		</div>
+
+		<div class="d-flex justify-content-center pt-3">
+			<span class="pe-2"><button class="btn btn-dark" data-bs-dismiss="modal" onclick="google.script.host.close()">
+				Exit
+			</button></span>
+			<span><input type="button" class="btn btn-primary" id="useSuggestion" value="Use Suggestion" onclick="google.script.run.withSuccessHandler(() => google.script.host.close()).runWithSuggestion()">
+			</span>
+			<span class="spinner-border spinner-border-sm text-success d-none ms-3 mt-3" role="status" id="loading"></span>
+		</div>
+	
+		<script>
+			function restartStatus(){
+				document.getElementById("useSuggestion").value = "Re-calculating...";
+				document.getElementById("loading").classList.remove("d-none");
+				document.getElementById("useSuggestion").classList.remove("btn-primary");
+				document.getElementById("useSuggestion").classList.add("btn-success");
+			}
+		
+			document.getElementById("useSuggestion").addEventListener("click",restartStatus);
+		</script>
+	</body>
+</html>
