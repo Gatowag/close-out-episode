@@ -6,6 +6,8 @@ let epDiag;
 let rowDiag;
 let errorMessage;
 let errorFailure;
+let bestAdMatch;
+let useMatch = false;
 
 
 // ░░░░░░░░░▓ FUNCTION THAT GETS CALLED FROM THE MENU ITEM
@@ -34,6 +36,7 @@ function findRow(){
 
 // ░░░░░░░░░▓ FILTERS THE SPONSOR DATA TO REMOVE EVERYTHING AFTER " ("
 function adInput(row){
+	
 	if (tab2.getRange("K" + row).getValue().match(/.*?(?= \()/) == null){
 		return tab2.getRange("K" + row).getValue().match(/.*/);
 	} else {
@@ -43,6 +46,7 @@ function adInput(row){
 
 // ░░░░░░░░░▓ IF NO TEXT IS FOUND FOR EPISODE TITLE, CUSTOM ERROR MESSAGE IS PASSED TO epDiag
 function isEpMissing(ep){
+	
 	if (ep == ""){ epDiag = "Submitting nothing" }
 	else { epDiag = ep }
 }
@@ -71,8 +75,8 @@ function findMatches(ep, ad){
 	
 	const lastRow = tab1.getLastRow();
 	const labelRange = tab1.getRange((lastRow - 39), 12, 40, 1);
-	var matchedEpRows = [];
-	var matchedAdRows = [];
+  var matchedEpRows = [];
+  var matchedAdRows = [];
 	
 	for ( i = 0; i < 40; i++) {
 		// SENDS THE ROW NUMBER OF MATCHING *EPISODE* ENTRIES FROM TAB 1 TO matchedEpRows ARRAY
@@ -86,43 +90,85 @@ function findMatches(ep, ad){
 		};
 	};
 
-	errorCheck(matchedEpRows, matchedAdRows);
+	errorCheck(matchedAdRows, matchedEpRows, ep);
 }
 
 // ░░░░░░░░░▓ IF A MATCH ISN'T FOUND, RUN AN ERROR MESSAGE AND END PROCESS
-function errorCheck(eps, ads){
+function errorCheck(ads, eps, epLabel){
 	
 	if (eps[0] == null){
 		errorMessage = "Your episode did not close successfully.";
 		errorFailure = epDiag;
 		
-		const htmlForModal = HtmlService.createTemplateFromFile("COB-error");
+		const htmlForModal = HtmlService.createTemplateFromFile("COB-ep-error");
 		const htmlOutput = htmlForModal.evaluate();
-			htmlOutput.setWidth(430);
-			htmlOutput.setHeight(110);
+			htmlOutput.setWidth(410);
+			htmlOutput.setHeight(130);
 		const ui = SpreadsheetApp.getUi();
 			ui.showModalDialog(htmlOutput, "Episode Error");
 	} else {		
-		if (ads[0] == null){
-			errorMessage = "Your episode closed successfully, but your ad didn't.";
+		if (ads[0] == null && useMatch == false) {
+			suggestMatch();
+			errorMessage = "Your episode found a match, but your ad didn't.";
 			errorFailure = adDiag;
 			
-			const htmlForModal = HtmlService.createTemplateFromFile("COB-error");
+			const htmlForModal = HtmlService.createTemplateFromFile("COB-ad-error");
 			const htmlOutput = htmlForModal.evaluate();
-				htmlOutput.setWidth(430);
-				htmlOutput.setHeight(90);
+				htmlOutput.setWidth(410);
+				htmlOutput.setHeight(170);
 			const ui = SpreadsheetApp.getUi();
 				ui.showModalDialog(htmlOutput, "Sponsor Error");
+		} else if (ads[0] == null && useMatch == true) {
+			suggestMatch();
+			findMatches(epLabel, bestAdMatch);
 		} else {
-			submitDataTab2(rowDiag);
-			closeOutEp(eps, ads);
-			closeOutAd(ads);
+			commitClose(eps, ads);
 		}
 	}
 }
 
+// ░░░░░░░░░▓ SUGGESTS THE NEAREST CANDIDATE TO CORRECT A TYPO
+function suggestMatch(){
+	
+	// dataArray.sponsors is the array of ads
+	getSpreadsheetData();
+	
+	let adStr = adDiag.toLocaleLowerCase();		// the lowercased sponsor input from user
+	let adArr = [].concat.apply([], dataArray.sponsors);
+	let filteredCandidates = [];
+	let bestMatch;
+
+	adArr.forEach(function(adCandidate) {
+		var filteredName = adCandidate.slice(4);
+		let adLength = adStr.length;
+		
+		for ( i = 0; i < adLength; i++) {
+			if (adCandidate.toLocaleLowerCase().includes(adStr[i]) == true) {
+				filteredName = filteredName.replace(new RegExp(adStr[i],"i"),'');
+			} else {
+				filteredName += adStr[i];
+			};
+		};
+		
+		filteredCandidates.push(filteredName.length);
+	});
+	
+	bestMatch = Math.min(...filteredCandidates);
+	let bestMatchLabel = adArr[filteredCandidates.indexOf(bestMatch)].slice(4);
+	bestAdMatch = bestMatchLabel;
+}
+
+// ░░░░░░░░░▓ RUN ALL OF THE FUNCTIONS THAT ACTUALLY CHANGE CELLS
+function commitClose(eps, ads){
+	
+	submitDataTab2(rowDiag);
+	closeOutEp(eps, ads);
+	closeOutAd(eps, ads);
+}
+
 // ░░░░░░░░░▓ EACH MATCHED EP ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
 function closeOutEp(eps, ads){
+	
 	eps.forEach(function(rowNum){
 		if (tab1.getRange("M" + rowNum).getValue() > 1){
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#b7b7b7");
@@ -134,25 +180,28 @@ function closeOutEp(eps, ads){
 			.setNumberFormat("yyyy-mm-dd");
 		tab1.getRange("Q" + rowNum).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
-		tab1.getRange("R" + rowNum).setValue(ads[0]);
 		tab1.hideRows(rowNum);
 	});
 }
 
 // ░░░░░░░░░▓ OLDEST MATCHED AD ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
-function closeOutAd(ads){
+function closeOutAd(eps, ads){
 	if (ads != null){
-		let oldestAd;
+		let firstAdRow;
 		
-		oldestAd = Math.min(...ads);
+		firstAdRow = Math.min(...ads);
+		let firstAdLabel = tab1.getRange("L" + firstAdRow).getValue().slice(4);
 		
-		tab1.getRange(oldestAd + ":" + oldestAd).setBackground("#b7b7b7");
-		tab1.getRange("O" + oldestAd).setValue(pubNum);
-		tab1.getRange("P" + oldestAd).setValue(new Date(uploads.items[0].snippet.publishedAt))
+		tab1.getRange(firstAdRow + ":" + firstAdRow).setBackground("#b7b7b7");
+		tab1.getRange("O" + firstAdRow).setValue(pubNum);
+		tab1.getRange("P" + firstAdRow).setValue(new Date(uploads.items[0].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
-		tab1.getRange("Q" + oldestAd).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
+		tab1.getRange("Q" + firstAdRow).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
-		tab1.hideRows(oldestAd);
+		eps.forEach(function(rowNum){
+			tab1.getRange("R" + rowNum).setValue(firstAdLabel);
+		});
+		tab1.hideRows(firstAdRow);
 	}
 }
 
@@ -202,4 +251,13 @@ function determinePubNum(row){
 
 	pubNum = Math.max(...recentPubNums) + 1;
 	return pubNum;
+}
+
+// ░░░░░░░░░▓ LOOPS BACK THROUGH CLOSING OUT BUT NOW DEFAULTING TO USE SUGGESTED MATCH
+function runWithSuggestion(){
+	/*	after navigating the modal, all data gets lost,
+		so we have to run through everything again
+		but this time default to using the ad match */
+	useMatch = true;
+	closeOutButton();
 }
