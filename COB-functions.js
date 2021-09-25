@@ -251,7 +251,8 @@ function closeOutAd(eps, ads){
 function submitDataTab2(row){
 	
 	// sets background color for the entire row
-	tab2.getRange("B" + row + ":O" + row).setBackground("#d9d9d9");
+	tab2.getRange("B" + row + ":O" + row)
+		.setBackground("#d9d9d9");
 	
 	// fills out release number
 	tab2.getRange("B" + row)
@@ -260,16 +261,19 @@ function submitDataTab2(row){
 		.setValue(determinePubNum(row));
 
 	// sets the air date to the date the selected video was published
-	tab2.getRange("D" + row).setValue(new Date(uploads.items[0].snippet.publishedAt))
+	tab2.getRange("D" + row)
+		.setValue(new Date(uploads.items[0].snippet.publishedAt))
 		.setNumberFormat("yyyy-mm-dd");
 	
 	// submits the corresponding youtube link
-	tab2.getRange("E" + row).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
+	tab2.getRange("E" + row)
+		.setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
 		.setFontSize(8)
 		.setHorizontalAlignment("right");
 	
 	// changes the production label to the published episode title
-	tab2.getRange("G" + row).setValue(uploads.items[0].snippet.title);
+	tab2.getRange("G" + row)
+		.setValue(uploads.items[0].snippet.title);
 
 	// unbolds the sponsor
 	tab2.getRange("K" + row)
