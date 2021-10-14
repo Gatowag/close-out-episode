@@ -206,6 +206,7 @@ function commitClose(eps, ads){
 	submitDataTab2(rowDiag);
 	closeOutEp(eps, ads);
 	closeOutAd(eps, ads);
+	adStatusUpdate(rowDiag);
 }
 
 // ░░░░░░░░░▓ EACH MATCHED EP ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
@@ -297,4 +298,30 @@ function determinePubNum(row){
 
 	pubNum = Math.max(...recentPubNums) + 1;
 	return pubNum;
+}
+
+// ░░░░░░░░░▓
+function adStatusUpdate(r){
+	const adSheet = SpreadsheetApp.openById("insert_spreasheet_ID_here");
+	const adTab1 = adSheet.getSheets()[0];
+	let ad = tab2.getRange("Q" + r).getValue().match(/.*?(?=\s\()/);	// sets "ad" to all text before " ("
+	let adSheetItems = {
+		status: [],
+		sponsor: []
+	};
+
+	let cappedRange;
+		if ((adTab1.getLastRow() + 1) > 75) { cappedRange = 75 } else { cappedRange = adTab1.getLastRow() + 1 };
+	adSheetItems.sponsor.push(adTab1.getRange(2, 3, cappedRange, 1).getValues());
+	adSheetItems.status.push(adTab1.getRange(2, 8, cappedRange, 1).getValues());
+
+	// travel up the rows
+	for (x = (cappedRange - 1); x > 0; x--) {
+		// stop the loop if the sponsor matches what we're looking for and its status is "unfulfilled"
+		// the sets "x" to be the number of the row we're looking to change (offset by -2)
+		if (adSheetItems.sponsor[0][x] == String(ad) && adSheetItems.status[0][x] == "unfulfilled"){ break }
+	};
+	
+	adTab1.getRange("H" + (x + 2))		// + 2 is to account for row indexes starting from 0 and the arrays starting in row 2
+		.setValue("published");
 }
