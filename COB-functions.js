@@ -38,10 +38,10 @@ function findRow(){
 // ░░░░░░░░░▓ FILTERS THE SPONSOR DATA TO REMOVE EVERYTHING AFTER " ("
 function adInput(row){
 	
-	if (tab2.getRange("K" + row).getValue().match(/.*?(?= \()/) == null){
-		return tab2.getRange("K" + row).getValue().match(/.*/);
+	if (tab2.getRange("Q" + row).getValue().match(/.*?(?= \()/) == null){
+		return tab2.getRange("Q" + row).getValue().match(/.*/);
 	} else {
-		return tab2.getRange("K" + row).getValue().match(/.*?(?= \()/);
+		return tab2.getRange("Q" + row).getValue().match(/.*?(?= \()/);
 	};
 }
 
@@ -251,7 +251,7 @@ function closeOutAd(eps, ads){
 function submitDataTab2(row){
 	
 	// sets background color for the entire row
-	tab2.getRange("B" + row + ":O" + row)
+	tab2.getRange("B" + row + ":" + row)
 		.setBackground("#d9d9d9");
 	
 	// fills out release number
@@ -276,7 +276,7 @@ function submitDataTab2(row){
 		.setValue(uploads.items[0].snippet.title);
 
 	// unbolds the sponsor
-	tab2.getRange("K" + row)
+	tab2.getRange("Q" + row)
 		.setFontWeight("normal");
 	
 	// sets entire row to vertical center
