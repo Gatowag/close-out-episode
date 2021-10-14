@@ -48,7 +48,7 @@ function adInput(row){
 // ░░░░░░░░░▓ IF NO TEXT IS FOUND FOR EPISODE TITLE, CUSTOM ERROR MESSAGE IS PASSED TO epDiag
 function isEpMissing(ep){
 	
-	if (ep == ""){ epDiag = "Submitting nothing" }
+	if (ep == ""){ epDiag = "not found" }
 	else { epDiag = ep }
 }
 
