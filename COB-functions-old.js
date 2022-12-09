@@ -206,6 +206,7 @@ function commitClose(eps, ads){
 	submitDataTab2(rowDiag);
 	closeOutEp(eps, ads);
 	closeOutAd(eps, ads);
+	adStatusUpdate(rowDiag);
 }
 
 // ░░░░░░░░░▓ EACH MATCHED EP ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
@@ -297,4 +298,27 @@ function determinePubNum(row){
 
 	pubNum = Math.max(...recentPubNums) + 1;
 	return pubNum;
+}
+
+// ░░░░░░░░░▓
+function adStatusUpdate(r){
+	const adSheet = SpreadsheetApp.openById("1wRjYN7CfzIuDJReLD0VYMNqggFm-ALk-bey7a4lerCA");
+	const adTab1 = adSheet.getSheets()[0];
+	let ad = tab2.getRange("Q" + r).getValue().match(/.*?(?=\s\()/);
+	let adSheetItems = {
+		status: [],
+		sponsor: []
+	};
+
+	let cappedRange;
+		if ((adTab1.getLastRow() + 1) > 75) { cappedRange = 75 } else { cappedRange = adTab1.getLastRow() + 1 };
+	adSheetItems.sponsor.push(adTab1.getRange(2, 3, cappedRange, 1).getValues());
+	adSheetItems.status.push(adTab1.getRange(2, 8, cappedRange, 1).getValues());
+
+	for (x = (cappedRange - 1); x > 0; x--) {
+		if (adSheetItems.sponsor[0][x] == String(ad) && adSheetItems.status[0][x] == "unfulfilled"){ break }
+	};
+	
+	adTab1.getRange("H" + (x + 2))			// + 2 is to account for row indexes starting from 0 and the arrays starting in row 2
+		.setValue("published");
 }
