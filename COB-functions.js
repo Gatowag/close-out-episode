@@ -204,19 +204,19 @@ function errorCheck(ads, eps, epLabel){
 function commitClose(eps, ads){
 	
 	submitDataTab2(rowDiag);
-	closeOutEp(eps, ads);
+	closeOutEp(eps);
 	closeOutAd(eps, ads);
 }
 
 // ░░░░░░░░░▓ EACH MATCHED EP ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
-function closeOutEp(eps, ads){
+function closeOutEp(eps){
 	
 	eps.forEach(function(rowNum){
 		if (tab1.getRange("M" + rowNum).getValue() > 1){
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#b7b7b7");
 		} else {
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#d9d9d9"); };
-
+		tab1.getRange("N" + rowNum).setValue("MR");
 		tab1.getRange("O" + rowNum).setValue(pubNum);
 		tab1.getRange("P" + rowNum).setValue(new Date(uploads.items[0].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
