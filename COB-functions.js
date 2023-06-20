@@ -8,6 +8,7 @@ let errorMessage;
 let errorFailure;
 let bestAdMatch;
 let adCorrectiveConf;
+let recentFull = [];
 
 
 // ░░░░░░░░░▓ FUNCTION THAT GETS CALLED FROM THE MENU ITEM
@@ -64,9 +65,26 @@ function getYoutubeData(){
 		var playlistId = item.contentDetails.relatedPlaylists.uploads;
 		var playlistResponse = YouTube.PlaylistItems.list('snippet', {
 			playlistId: playlistId,
-			maxResults: 5,
+			maxResults: 10,
 		});
 	}
+
+	let IDlist = [];
+	// loop through latest videos to store their IDs (end of url) to IDlist
+	for (var f = 0; f < 10; f++) {
+	  let tempID = playlistResponse.items[f].snippet.resourceId.videoId;
+	  IDlist.push(tempID);
+	};
+	
+	// send the 10 most recent IDs to an API to see which are shorts and which aren't
+	const shortsAPI = UrlFetchApp.fetch(`https://yt.lemnoslife.com/videos?part=short&id=${IDlist}`);
+	var shortsData = Utilities.jsonParse(shortsAPI.getContentText());
+  
+	// loop through the shorts API, send the first non-short to recentFull and stop the loop
+	for (var r = 0; r < 10; r++) {
+	  let tempAvail = shortsData.items[r].short.available;
+	  if (tempAvail == false) {recentFull.push(r)};
+	};
 
 	uploads = playlistResponse;
 }
@@ -218,9 +236,9 @@ function closeOutEp(eps){
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#d9d9d9"); };
 		tab1.getRange("N" + rowNum).setValue("MR");
 		tab1.getRange("O" + rowNum).setValue(pubNum);
-		tab1.getRange("P" + rowNum).setValue(new Date(uploads.items[0].snippet.publishedAt))
+		tab1.getRange("P" + rowNum).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
-		tab1.getRange("Q" + rowNum).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
+		tab1.getRange("Q" + rowNum).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
 		tab1.hideRows(rowNum);
 	});
@@ -236,9 +254,9 @@ function closeOutAd(eps, ads){
 		
 		tab1.getRange(firstAdRow + ":" + firstAdRow).setBackground("#b7b7b7");
 		tab1.getRange("O" + firstAdRow).setValue(pubNum);
-		tab1.getRange("P" + firstAdRow).setValue(new Date(uploads.items[0].snippet.publishedAt))
+		tab1.getRange("P" + firstAdRow).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
-		tab1.getRange("Q" + firstAdRow).setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
+		tab1.getRange("Q" + firstAdRow).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
 		eps.forEach(function(rowNum){
 			tab1.getRange("R" + rowNum).setValue(firstAdLabel);
@@ -250,44 +268,42 @@ function closeOutAd(eps, ads){
 // ░░░░░░░░░▓ SUBMITS AND MODIFIES DATA IN TAB 2
 function submitDataTab2(row){
 	
-	// sets background color for the entire row
-	tab2.getRange("B" + row + ":" + row)
-		.setBackground("#d9d9d9");
-	
 	// fills out release number
-	tab2.getRange("B" + row)
+	tab2.getRange("A" + row)
 		.setValue("MR");
-	tab2.getRange("C" + row)
+	tab2.getRange("B" + row)
 		.setValue(determinePubNum(row));
 
 	// sets the air date to the date the selected video was published
-	tab2.getRange("D" + row)
-		.setValue(new Date(uploads.items[0].snippet.publishedAt))
-		.setNumberFormat("yyyy-mm-dd");
+	tab2.getRange("C" + row)
+		.setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
+		.setNumberFormat("yyyy-mm-dd")
+		.setFontSize(8);
 	
 	// submits the corresponding youtube link
-	tab2.getRange("E" + row)
-		.setValue("https://youtu.be/" + uploads.items[0].snippet.resourceId.videoId)
+	tab2.getRange("D" + row)
+		.setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 		.setFontSize(8)
 		.setHorizontalAlignment("right");
 	
 	// changes the production label to the published episode title
 	tab2.getRange("G" + row)
-		.setValue(uploads.items[0].snippet.title);
+		.setValue(uploads.items[recentFull[0]].snippet.title);
 
 	// unbolds the sponsor
 	tab2.getRange("Q" + row)
 		.setFontWeight("normal");
 	
-	// sets entire row to vertical center
+	// sets background color and vertical center for the entire row
 	tab2.getRange(row + ":" + row)
-		.setVerticalAlignment("middle");
+		.setVerticalAlignment("middle")
+		.setBackground("#d9d9d9");
 }
 
 // ░░░░░░░░░▓ DETERMINES PUBLISH NUMBER
 function determinePubNum(row){
 	
-	const rangePubNums = tab2.getRange(row, 3, 10, 1);
+	const rangePubNums = tab2.getRange(row, 2, 10, 1);
 	var recentPubNums = [];
 
 	for ( i = 0; i < 10; i++ ){
