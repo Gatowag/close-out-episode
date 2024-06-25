@@ -1,5 +1,6 @@
 // ░░░░░░░░░▓ FUNCTION THAT GETS CALLED FROM THE MENU ITEM
 function closeOutButton() {
+	console.log(`DIAG: ${new Date().toISOString().slice(14,23)}, starting COB`);
 	
 	const foundRow = findRow();
 	const epLabel = tab2.getRange(tab2TitleCol + foundRow).getValue();
