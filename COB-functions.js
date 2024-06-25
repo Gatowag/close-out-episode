@@ -12,6 +12,7 @@ function closeOutButton() {
 	getYoutubeData();
 	getSheetDataCoB(newRow - 70);
 	findMatches(epLabel, adLabel);
+	updateMusicDoc();
 }
 
 // ░░░░░░░░░▓ FIND THE LOWEST WHITE BACKGROUND ROW (UNPUBLISHED) IN TAB 2
@@ -311,4 +312,54 @@ function determinePubNum(row){
 
 	pubNum = Math.max(...recentPubNums) + 1;
 	return pubNum;
+}
+
+// ░░░░░░░░░▓ WRITES DATA FROM CLOSED-OUT EPISODE TO MUSIC DOC
+function updateMusicDoc() {
+	const mDoc = SpreadsheetApp.openById(`PASTE ID FROM URL HERE`);
+	const mTab = mDoc.getSheets()[0];
+	const mVals = mTab.getRange("A2:C25").getValues();
+	let mRow, mRow2;
+	
+	for (m = 23; m >= 0; m--) {
+		if (Date.parse(mVals[m][2]) != null) { mRow2 = m + 2; };
+		if (mVals[m][0] == "") {
+			mRow = m + 2;
+			break;
+		}
+	};
+	
+	mTab.getRange(`A${mRow}`)
+		.setValue(pubNum)
+    	.setFontFamily("Roboto Mono")
+		.setFontSize(12)
+		.setFontWeight("bold")
+		.setHorizontalAlignment("center");
+
+	// fills in published episode title
+  	mTab.getRange(`B${mRow}`)
+		.setValue(uploads.items[recentFull[0]].snippet.title)
+		.setHorizontalAlignment("left")
+		.setFontSize(14);
+
+	// sets the air date to the date the selected video was published
+  	mTab.getRange(`C${mRow}`)
+		.setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
+		.setNumberFormat("yyyy-mm-dd")
+		.setHorizontalAlignment("center")
+		.setFontSize(10);
+
+	// submits the corresponding youtube link
+	mTab.getRange(`D${mRow}`)
+		.setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
+		.setHorizontalAlignment("left")
+		.setFontSize(10);
+
+	// format entire row after production number
+	mTab.getRange(`B${mRow}:2`)
+		.setFontFamily("Roboto");
+	
+	// format entire episode's entry
+	mTab.getRange(`A${mRow}:D${mRow2}`)
+		.setVerticalAlignment("middle");
 }
