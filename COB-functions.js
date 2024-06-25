@@ -83,6 +83,7 @@ function getSheetDataCoB(offset){
 	const locationWideRange = tab1.getRange(offset,19,newRow - (offset-1),1);
 	const locationNarrowRange = tab1.getRange(offset,20,newRow - (offset-1),1);
 
+		// cycle through all rows of selected data
 		for ( i = 0; i < ((newRow + 1) - offset); i++){
 			if (labelRange.getBackgrounds()[i] == "#ffff00") {
 				dataArray.unfinished.push(labelRange.getValues()[i])
@@ -93,11 +94,14 @@ function getSheetDataCoB(offset){
 				dataArray.allLabels.push(labelRange.getValues()[i])
 			};
 			
+			// if ad entry is detected
 			if (labelRange.getBackgrounds()[i] == "#90eba6") {
+				// store the ad title
 				dataArray.recSponsors.push(labelRange.getValues()[i]);
 			};
 		};
-		
+	
+	// strip "ad: " text from all ad titles and store them separately
 	dataArray.allSponsors = labelRange.getValues().filter(value => /^ad: /i.test(value));
 
 	return dataArray;
@@ -228,6 +232,7 @@ function closeOutEp(eps){
 			.setHorizontalAlignment("right");
 		tab1.hideRows(rowNum);
 	});
+	
 }
 
 // ░░░░░░░░░▓ OLDEST MATCHED AD ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
@@ -254,30 +259,37 @@ function closeOutAd(eps, ads){
 // ░░░░░░░░░▓ SUBMITS AND MODIFIES DATA IN TAB 2
 function submitDataTab2(row){
 	
+	tab2.getRange(tab2ProdCol + row + ":" + tab2LinkCol + row)
+		.setFontFamily("Roboto Mono")
+		.setFontSize(8);
+
 	// fills out release number
 	tab2.getRange(tab2ProdCol + row)
 		.setValue(`p${prodNum}`)
 	tab2.getRange(tab2PubCol + row)
 		.setValue(determinePubNum(row))
+		.setFontSize(10);
 
 	// sets the air date to the date the selected video was published
 	tab2.getRange(tab2DateCol + row)
 		.setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
-		.setNumberFormat("yyyy-mm-dd")
-		.setFontSize(8);
+		.setNumberFormat("yyyy-mm-dd");
 	
 	// submits the corresponding youtube link
 	tab2.getRange(tab2LinkCol + row)
 		.setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
-		.setFontSize(8)
 		.setHorizontalAlignment("right");
 	
 	// changes the production label to the published episode title
 	tab2.getRange(tab2TitleCol + row)
 		.setValue(uploads.items[recentFull[0]].snippet.title)
+		.setFontFamily("Roboto")
+		.setFontSize(10);
 
 	// unbolds the sponsor
 	tab2.getRange(tab2SponsCol + row)
+		.setFontFamily("Roboto")
+		.setFontSize(10)
 		.setFontWeight("normal");
 	
 	// sets background color and vertical center for the entire row
