@@ -1,21 +1,8 @@
-// ░░░░░░░░░▓ GLOBAL VARIABLES
-let uploads;
-let pubNum;
-let adDiag;
-let epDiag;
-let rowDiag;
-let errorMessage;
-let errorFailure;
-let bestAdMatch;
-let adCorrectiveConf;
-let recentFull = [];
-
-
 // ░░░░░░░░░▓ FUNCTION THAT GETS CALLED FROM THE MENU ITEM
 function closeOutButton() {
 	
 	const foundRow = findRow();
-	const epLabel = tab2.getRange("G" + foundRow).getValue();
+	const epLabel = tab2.getRange(tab2TitleCol + foundRow).getValue();
 	const adLabel = adInput(foundRow);
 
 	rowDiag = foundRow;
@@ -29,7 +16,7 @@ function closeOutButton() {
 // ░░░░░░░░░▓ FIND THE LOWEST WHITE BACKGROUND ROW (UNPUBLISHED) IN TAB 2
 function findRow(){
 
-	let rowCand2D = tab2.getRange("G1:G40").getBackgrounds();	// returns a 2D array of all background values in first 40 rows
+	let rowCand2D = tab2.getRange(`${tab2TitleCol}1:${tab2TitleCol}40`).getBackgrounds();	// returns a 2D array of all background values in first 40 rows
 	let rowCandidates = [].concat.apply([], rowCand2D);			// converts rowCand2D from a 2D array to a 1D array
 	let foundRow = rowCandidates.lastIndexOf("#ffffff");		// returns last row of white background (counting from 0)
 	
@@ -39,10 +26,10 @@ function findRow(){
 // ░░░░░░░░░▓ FILTERS THE SPONSOR DATA TO REMOVE EVERYTHING AFTER " ("
 function adInput(row){
 	
-	if (tab2.getRange("Q" + row).getValue().match(/.*?(?= \()/) == null){
-		return tab2.getRange("Q" + row).getValue().match(/.*/);
+	if (tab2.getRange(tab2SponsCol + row).getValue().match(/.*?(?= \()/) == null){
+		return tab2.getRange(tab2SponsCol + row).getValue().match(/.*/);
 	} else {
-		return tab2.getRange("Q" + row).getValue().match(/.*?(?= \()/);
+		return tab2.getRange(tab2SponsCol + row).getValue().match(/.*?(?= \()/);
 	};
 }
 
@@ -230,15 +217,14 @@ function commitClose(eps, ads){
 function closeOutEp(eps){
 	
 	eps.forEach(function(rowNum){
-		if (tab1.getRange("M" + rowNum).getValue() > 1){
+		if (tab1.getRange(tab1PartCol + rowNum).getValue() > 1){
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#b7b7b7");
 		} else {
 			tab1.getRange(rowNum + ":" + rowNum).setBackground("#d9d9d9"); };
-		tab1.getRange("N" + rowNum).setValue("MR");
-		tab1.getRange("O" + rowNum).setValue(pubNum);
-		tab1.getRange("P" + rowNum).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
+		tab1.getRange(tab1PubCol + rowNum).setValue(pubNum);
+		tab1.getRange(tab1PubDateCol + rowNum).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
-		tab1.getRange("Q" + rowNum).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
+		tab1.getRange(tab1LinkCol + rowNum).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
 		tab1.hideRows(rowNum);
 	});
@@ -250,16 +236,16 @@ function closeOutAd(eps, ads){
 		let firstAdRow;
 		
 		firstAdRow = Math.min(...ads);
-		let firstAdLabel = tab1.getRange("L" + firstAdRow).getValue().slice(4);
+		let firstAdLabel = tab1.getRange(tab1TitleCol + firstAdRow).getValue().slice(4);
 		
 		tab1.getRange(firstAdRow + ":" + firstAdRow).setBackground("#b7b7b7");
-		tab1.getRange("O" + firstAdRow).setValue(pubNum);
-		tab1.getRange("P" + firstAdRow).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
+		tab1.getRange(tab1PubCol + firstAdRow).setValue(pubNum);
+		tab1.getRange(tab1PubDateCol + firstAdRow).setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
 			.setNumberFormat("yyyy-mm-dd");
-		tab1.getRange("Q" + firstAdRow).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
+		tab1.getRange(tab1LinkCol + firstAdRow).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
 		eps.forEach(function(rowNum){
-			tab1.getRange("R" + rowNum).setValue(firstAdLabel);
+			tab1.getRange(tab1SponsCol + rowNum).setValue(firstAdLabel);
 		});
 		tab1.hideRows(firstAdRow);
 	}
@@ -269,29 +255,29 @@ function closeOutAd(eps, ads){
 function submitDataTab2(row){
 	
 	// fills out release number
-	tab2.getRange("A" + row)
-		.setValue("MR");
-	tab2.getRange("B" + row)
-		.setValue(determinePubNum(row));
+	tab2.getRange(tab2ProdCol + row)
+		.setValue(`p${prodNum}`)
+	tab2.getRange(tab2PubCol + row)
+		.setValue(determinePubNum(row))
 
 	// sets the air date to the date the selected video was published
-	tab2.getRange("C" + row)
+	tab2.getRange(tab2DateCol + row)
 		.setValue(new Date(uploads.items[recentFull[0]].snippet.publishedAt))
 		.setNumberFormat("yyyy-mm-dd")
 		.setFontSize(8);
 	
 	// submits the corresponding youtube link
-	tab2.getRange("D" + row)
+	tab2.getRange(tab2LinkCol + row)
 		.setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 		.setFontSize(8)
 		.setHorizontalAlignment("right");
 	
 	// changes the production label to the published episode title
-	tab2.getRange("G" + row)
-		.setValue(uploads.items[recentFull[0]].snippet.title);
+	tab2.getRange(tab2TitleCol + row)
+		.setValue(uploads.items[recentFull[0]].snippet.title)
 
 	// unbolds the sponsor
-	tab2.getRange("Q" + row)
+	tab2.getRange(tab2SponsCol + row)
 		.setFontWeight("normal");
 	
 	// sets background color and vertical center for the entire row
