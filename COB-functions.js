@@ -45,37 +45,38 @@ function isEpMissing(ep){
 // ░░░░░░░░░▓ PULLS YOUTUBE DATA, STORES IT IN GLOBAL VARIABLE "UPLOADS"
 function getYoutubeData(){
 	
-	let results = YouTube.Channels.list('contentDetails', {
-		id: "UC42VsoDtra5hMiXZSsD6eGg"
+	// get uploads playlist ID from given channel
+	const mrChannel = YouTube.Channels.list('contentDetails', { id: "UC42VsoDtra5hMiXZSsD6eGg" });
+	const mrUploadsID = mrChannel.items[0].contentDetails.relatedPlaylists.uploads;
+	// get data from 10 most recent uploads
+	const mrUploads = YouTube.PlaylistItems.list('snippet', {
+		playlistId: mrUploadsID,
+		maxResults: 50,
 	});
-
-	for (var i = 0; i < results.items.length; i++) {
-		var item = results.items[i];
-		var playlistId = item.contentDetails.relatedPlaylists.uploads;
-		var playlistResponse = YouTube.PlaylistItems.list('snippet', {
-			playlistId: playlistId,
-			maxResults: 10,
-		});
-	}
 
 	let IDlist = [];
 	// loop through latest videos to store their IDs (end of url) to IDlist
-	for (var f = 0; f < 10; f++) {
-	  let tempID = playlistResponse.items[f].snippet.resourceId.videoId;
-	  IDlist.push(tempID);
-	};
-	
-	// send the 10 most recent IDs to an API to see which are shorts and which aren't
-	const shortsAPI = UrlFetchApp.fetch(`https://yt.lemnoslife.com/videos?part=short&id=${IDlist}`);
-	var shortsData = Utilities.jsonParse(shortsAPI.getContentText());
-  
-	// loop through the shorts API, send the first non-short to recentFull and stop the loop
-	for (var r = 0; r < 10; r++) {
-	  let tempAvail = shortsData.items[r].short.available;
-	  if (tempAvail == false) {recentFull.push(r)};
+	for (let f = 0; f < 50; f++) {
+	  let tempID = mrUploads.items[f].snippet.resourceId.videoId;
+		IDlist.push(tempID);
 	};
 
-	uploads = playlistResponse;
+	// gets data to filter out YT shorts
+	const mrVideos = YouTube.Videos.list(
+		'contentDetails',
+		{ id: [IDlist.toString()] } );
+
+	// loop through latest videos to store their IDs (end of url) to IDlist
+	for (let s = 0; s < 50; s++) {
+		let sD = mrVideos.items[s].contentDetails.duration;
+		let sM = sD.indexOf("M"), sT = sD.indexOf("T"), sH = sD.indexOf("H");
+
+		if (sH != -1) { recentFull.push(s) }
+		else if (sM == -1) { continue; }
+		else if (Number(sD.slice(sT + 1, sM)) >= 2) { recentFull.push(s) };
+	};
+
+	uploads = mrUploads;
 }
 
 // ░░░░░░░░░▓ READS DATA FROM THE SPREADSHEET WHEN THE SIDEBAR LOADS,
