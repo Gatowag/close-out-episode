@@ -221,6 +221,7 @@ function closeOutEp(eps){
 			.setNumberFormat("yyyy-mm-dd");
 		tab1.getRange(tab1LinkCol + rowNum).setValue("https://youtu.be/" + uploads.items[recentFull[0]].snippet.resourceId.videoId)
 			.setHorizontalAlignment("right");
+		prodNum = tab1.getRange(tab1ProdCol + rowNum).getValue();
 		tab1.hideRows(rowNum);
 	});
 	
