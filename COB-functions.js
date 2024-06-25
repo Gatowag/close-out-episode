@@ -83,20 +83,9 @@ function getYoutubeData(){
 // ░░░░░░░░░▓ ALL RELEVANT DATA GETS PASSED TO THEIR RESPECTIVE ARRAYS IN OBJECT "dataArray"
 function getSheetDataCoB(offset){
 	const labelRange = tab1.getRange(offset,12,newRow - (offset-1),1);
-	const locationWideRange = tab1.getRange(offset,19,newRow - (offset-1),1);
-	const locationNarrowRange = tab1.getRange(offset,20,newRow - (offset-1),1);
 
 		// cycle through all rows of selected data
 		for ( i = 0; i < ((newRow + 1) - offset); i++){
-			if (labelRange.getBackgrounds()[i] == "#ffff00") {
-				dataArray.unfinished.push(labelRange.getValues()[i])
-			} else if (locationWideRange.getValues()[i] != "") {
-				dataArray.locationsWide.push(locationWideRange.getValues()[i]);
-				dataArray.locationsNarrow.push(locationNarrowRange.getValues()[i]);
-			} else if (labelRange.getValues()[i] != "") {
-				dataArray.allLabels.push(labelRange.getValues()[i])
-			};
-			
 			// if ad entry is detected
 			if (labelRange.getBackgrounds()[i] == "#90eba6") {
 				// store the ad title
