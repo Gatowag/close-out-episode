@@ -211,10 +211,9 @@ function errorCheck(ads, eps, epLabel){
 
 // ░░░░░░░░░▓ RUN ALL OF THE FUNCTIONS THAT ACTUALLY CHANGE CELLS
 function commitClose(eps, ads){
-	
-	submitDataTab2(rowDiag);
 	closeOutEp(eps);
 	closeOutAd(eps, ads);
+	submitDataTab2(rowDiag);
 }
 
 // ░░░░░░░░░▓ EACH MATCHED EP ENTRY | SUBMITS DATA, FORMATS DATA, COLORS ROW, HIDES ROW
