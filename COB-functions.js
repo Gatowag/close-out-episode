@@ -127,51 +127,95 @@ function findMatches(ep, ad){
 // ░░░░░░░░░▓ SUGGESTS THE NEAREST CANDIDATE TO CORRECT A TYPO
 function suggestMatch(){
 	
-	let inputString = adDiag.toLocaleLowerCase();									// user input set to all lower case
-	let candidates = [].concat.apply([], dataArray.recSponsors);					// a flattened array of recorded sponsors
-	let candConfidences = [];														// a list of each candidate's confidence rating
-					
-	candidates.forEach(function(cand) {												// run through each ad candidate
-		let clone = cand.slice(4).toLocaleLowerCase();								// removes "ad: " from the beginning of the candidate
-		let candLength = clone.length;												// length of candidate string before filtering
-		let penalties = 0;															// how many letters are input but not matched
+	// user input set to all lower case
+	let inputString = adDiag.toLocaleLowerCase();
+	// a flattened array of recorded sponsors
+	let candidates = [].concat.apply([], dataArray.recSponsors);
+	// a list of each candidate's confidence rating
+	let candConfidences = [];
+
+	// run through each candidate
+	candidates.forEach(function(cand) {
+		
+		// creates a copy to manipulate, starting with removing "ad: " from the beginning 
+		let clone = cand.slice(4).toLocaleLowerCase();
+		// length of candidate string before filtering
+		let candLength = clone.length;
+		// how many characters are input but not matched
+		let penalties = 0;
+		// score is rewarded and penalized by the algorithm,
+		// lower score indicates the candidate is a better match
 		let score = candLength;
-		let candReward = 0;															// cumulative consecutive matches
-		let consMatches = -1;														// variable consecutive match counter
-		let inputLength = inputString.length;										// length of user input as a number
-							
-		for ( i = 0; i < inputLength; i++) {										// runs through each letter of the user input
-			let indx = clone.indexOf(inputString[i]);								// define the location of this character in the cand, -1 if none
-			if (indx !== -1) {														// if the letter exists in the candidate, then...
-				let str1 = clone.slice(0, indx);									// cut everything before the letter
-				let str2 = clone.slice(indx + 1);									// cut everything after the letter
-				clone = str1 += str2;												// combine the strings to remove the letter
-				let proxPoint = roundDec(1 - Math.abs((indx / candLength) - (i / inputLength)),2);
+		// reward tally for 2+ consecutive matches
+		let candReward = 0;
+		// tracks how many consecutive character matches the input has with the candidate
+		// resets on every mismatch
+		let consMatches = -1;
+		// length of user input as a number
+		let inputLength = inputString.length;
+
+		// run through each letter of the user input
+		for (i = 0; i < inputLength; i++) {
+			// define the location of this character in the cand, -1 if none
+			let indx = clone.indexOf(inputString[i]);
+
+			// if the letter exists in the candidate, then...
+			if (indx !== -1) {
+				// cut everything before the letter
+				let str1 = clone.slice(0, indx);
+				// cut everything after the letter
+				let str2 = clone.slice(indx + 1);
+				// combine the strings to remove the letter
+				clone = str1 += str2;
+				// defines a proximity point, which rewards matched characters for
+				// having a similar placement in both the input and candidate. For example,
+				// if you input "trek," the "t" scores higher against "talk" than it does "dart"
+				let proxPoint = roundDec(1 - Math.abs((indx / candLength) - (i / inputLength)), 2);
+				// reward the score for a match
 				score = score - proxPoint;
+				// tally the count for consecutive character matches
 				consMatches++;	
-					
-			} else {															// but if it can't be found in the candidate...
-				penalties++;														// ... then it increases total length
-				if (consMatches > 0){ candReward = candReward + consMatches };		// send consecutive bonus if it's built up
-				consMatches = -1;													// reset consecutive bonus	
+
+			// but if it can't be found in the candidate, then...
+			} else {
+				// penalties increase by 1 to later penalize the score
+				penalties++;
+				// if 2 or more consecutive characters matched before this
+				// update the reward with how many consecutive matches it was
+				if (consMatches > 0) { candReward = candReward + consMatches };
+				// and then reset the count
+				consMatches = -1;
 			};
 		};
-		if (consMatches > 0) { candReward = candReward + consMatches };				// settles any bonuses from the last loop
 
+		// track any remaining consecutive matches from the last loop
+		if (consMatches > 0) { candReward = candReward + consMatches };
+
+		// define the reward
+		// at best it's equal to the cand's score, reduced by fewer consecutive matches
 		let reward = score * (candReward / candLength);
 
-		// adds mismatches from the user input to the total length
+		// reward the score with the consecutive match bonus ("reward")
+		// and penalize by adding the mismatches to the total ("penalties")
 		score = roundDec(score - reward + penalties, 2);
 
+		// define the confidence rating
+		// typically falls within 0 - 100, 100 is a perfect match
+		// can go into negatives if there are a lot of mismatches
 		let confidence = Math.round((2 - (score / (candLength))) * 50);
 
-		candConfidences.push(confidence);											// send filtered candidate string to list
+		// send confidence rating to a list
+		candConfidences.push(confidence);
 	});
-	
-	let bestMatch = Math.max(...candConfidences);									// find the candidate with the highest confidence
-	let bestMatchName = candidates[candConfidences.indexOf(bestMatch)].slice(4);	// return the corresponding title without "ad: "
-	bestAdMatch = bestMatchName;													// global version of the above
-	adCorrectiveConf = candConfidences[candConfidences.indexOf(bestMatch)];			// sets adCorrectiveConf to the confidence rating
+
+	// determine the index of the candidate with the highest confidence
+	let bestMatch = Math.max(...candConfidences);
+	// return the best match's title without "ad: "
+	let bestMatchName = candidates[candConfidences.indexOf(bestMatch)].slice(4);
+	// global version of the above
+	bestAdMatch = bestMatchName;
+	// sets adCorrectiveConf to the confidence rating
+	adCorrectiveConf = candConfidences[candConfidences.indexOf(bestMatch)];
 }
 
 // ░░░░░░░░░▓ SIMPLE FUNCTION TO RETURN A ROUNDED NUMBER TO A GIVEN PLACE
