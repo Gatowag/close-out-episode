@@ -135,6 +135,7 @@ function suggestMatch(){
 		let clone = cand.slice(4).toLocaleLowerCase();								// removes "ad: " from the beginning of the candidate
 		let candLength = clone.length;												// length of candidate string before filtering
 		let penalties = 0;															// how many letters are input but not matched
+		let score = candLength;
 		let candReward = 0;															// cumulative consecutive matches
 		let consMatches = -1;														// variable consecutive match counter
 		let inputLength = inputString.length;										// length of user input as a number
@@ -145,6 +146,8 @@ function suggestMatch(){
 				let str1 = clone.slice(0, indx);									// cut everything before the letter
 				let str2 = clone.slice(indx + 1);									// cut everything after the letter
 				clone = str1 += str2;												// combine the strings to remove the letter
+				let proxPoint = roundDec(1 - Math.abs((indx / candLength) - (i / inputLength)),2);
+				score = score - proxPoint;
 				consMatches++;	
 					
 			} else {															// but if it can't be found in the candidate...
@@ -155,15 +158,14 @@ function suggestMatch(){
 		};
 		if (consMatches > 0) { candReward = candReward + consMatches };				// settles any bonuses from the last loop
 
-		let roundedLength = Math.round(100*											// rounds to hundredth place
-			(clone.length + penalties)*												// adds mismatches from the user input to the total length
-			((candLength - candReward) / candLength))								// applies a bonus based on consecutive matches
-			/100;																	// completes the rounding
-		let proportionalLength = Math.round(										// rounds to nearest integer
-			(1 - (roundedLength / (candLength + clone.length + penalties)))
-			* 100);																	// final length as a percentage of start length + mismatches
-		
-		filteredCandidates.push(proportionalLength);								// send filtered candidate string to list
+		let reward = score * (candReward / candLength);
+
+		// adds mismatches from the user input to the total length
+		score = roundDec(score - reward + penalties, 2);
+
+		let confidence = Math.round((2 - (score / (candLength))) * 50);
+
+		candConfidences.push(confidence);											// send filtered candidate string to list
 	});
 	
 	let bestMatch = Math.max(...candConfidences);									// find the candidate with the highest confidence
