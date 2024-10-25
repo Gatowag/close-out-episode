@@ -151,7 +151,7 @@ function suggestMatch(){
 					
 			} else {															// but if it can't be found in the candidate...
 				deviations++;														// ... then it increases total length
-				if (consCount >= 1){ consBonus = consBonus + consCount };			// send consecutive bonus if it's built up
+				if (consCount > 0){ consBonus = consBonus + consCount };			// send consecutive bonus if it's built up
 				consCount = -1;														// reset consecutive bonus	
 			};
 			
