@@ -141,11 +141,10 @@ function suggestMatch(){
 		let adLength = adStr.length;												// length of user input as a number
 							
 		for ( i = 0; i < adLength; i++) {											// runs through each letter of the user input
-				
-			if (candidateSearchStr.includes(adStr[i]) == true) {				// if the letter exists in the candidate, then...
-				let x = candidateSearchStr.indexOf(adStr[i]);						// where the letter is first found
-				let str1 = candidateSearchStr.slice(0, x);							// cut everything before the letter
-				let str2 = candidateSearchStr.slice(x + 1);							// cut everything after the letter
+			let indx = candidateSearchStr.indexOf(inputString[i]);					// define the location of this character in the cand, -1 if none
+			if (indx !== -1) {														// if the letter exists in the candidate, then...
+				let str1 = candidateSearchStr.slice(0, indx);						// cut everything before the letter
+				let str2 = candidateSearchStr.slice(indx + 1);						// cut everything after the letter
 				candidateSearchStr = str1 += str2;									// combine the strings to remove the letter
 				consCount++;	
 					
