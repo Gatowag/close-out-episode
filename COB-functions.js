@@ -174,6 +174,11 @@ function suggestMatch(){
 	adCorrectiveConf = candConfidences[candConfidences.indexOf(bestMatch)];			// sets adCorrectiveConf to the confidence rating
 }
 
+// ░░░░░░░░░▓ SIMPLE FUNCTION TO RETURN A ROUNDED NUMBER TO A GIVEN PLACE
+function roundDec(n, places) {
+	return Math.round(n * Math.pow(10,places)) / Math.pow(10,places);
+}
+
 // ░░░░░░░░░▓ IF A MATCH ISN'T FOUND, RUN AN ERROR MESSAGE AND END PROCESS
 function errorCheck(ads, eps, epLabel){
 	if (eps[0] == null){
