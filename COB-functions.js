@@ -127,7 +127,6 @@ function findMatches(ep, ad){
 // ░░░░░░░░░▓ SUGGESTS THE NEAREST CANDIDATE TO CORRECT A TYPO
 function suggestMatch(){
 	
-	let bestMatch;																	// the lowest number from filteredCandidates
 	let inputString = adDiag.toLocaleLowerCase();									// user input set to all lower case
 	let candidates = [].concat.apply([], dataArray.recSponsors);					// a flattened array of recorded sponsors
 	let candConfidences = [];														// a list of each candidate's confidence rating
