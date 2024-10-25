@@ -154,10 +154,8 @@ function suggestMatch(){
 				if (consCount > 0){ consBonus = consBonus + consCount };			// send consecutive bonus if it's built up
 				consCount = -1;														// reset consecutive bonus	
 			};
-			
-			if ([i] == (adLength - 1) && (consCount == -1))	{consBonus = consBonus + 0}
-			else if ([i] == (adLength - 1) && (consCount != -1)) {consBonus = consBonus + consCount};
 		};
+		if (consCount != -1) {consBonus = consBonus + consCount};					// settles any bonuses from the last loop
 
 		let roundedLength = Math.round(100*											// rounds to hundredth place
 			(candidateSearchStr.length + deviations)*								// adds mismatches from the user input to the total length
