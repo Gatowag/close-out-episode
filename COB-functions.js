@@ -127,50 +127,50 @@ function findMatches(ep, ad){
 // ░░░░░░░░░▓ SUGGESTS THE NEAREST CANDIDATE TO CORRECT A TYPO
 function suggestMatch(){
 	
-	let adStr = adDiag.toLocaleLowerCase();											// user input set to all lower case
-	let adArr = [].concat.apply([], dataArray.recSponsors);							// a flattened array of recorded sponsors
-	let filteredCandidates = [];													// a list of each candidate's confidence rating
 	let bestMatch;																	// the lowest number from filteredCandidates
+	let inputString = adDiag.toLocaleLowerCase();									// user input set to all lower case
+	let candidates = [].concat.apply([], dataArray.recSponsors);					// a flattened array of recorded sponsors
+	let candConfidences = [];														// a list of each candidate's confidence rating
 					
-	adArr.forEach(function(adCandidate) {											// run through each ad candidate
-		let candidateSearchStr = adCandidate.slice(4).toLocaleLowerCase();			// removes "ad: " from the beginning of the candidate
-		let canLength = candidateSearchStr.length;									// length of candidate string before filtering
-		let deviations = 0;															// how many letters are input but not matched
-		let consBonus = 0;															// cumulative consecutive matches
-		let consCount = -1;															// variable consecutive match counter
-		let adLength = adStr.length;												// length of user input as a number
+	candidates.forEach(function(cand) {												// run through each ad candidate
+		let clone = cand.slice(4).toLocaleLowerCase();								// removes "ad: " from the beginning of the candidate
+		let candLength = clone.length;												// length of candidate string before filtering
+		let penalties = 0;															// how many letters are input but not matched
+		let candReward = 0;															// cumulative consecutive matches
+		let consMatches = -1;														// variable consecutive match counter
+		let inputLength = inputString.length;										// length of user input as a number
 							
-		for ( i = 0; i < adLength; i++) {											// runs through each letter of the user input
-			let indx = candidateSearchStr.indexOf(inputString[i]);					// define the location of this character in the cand, -1 if none
+		for ( i = 0; i < inputLength; i++) {										// runs through each letter of the user input
+			let indx = clone.indexOf(inputString[i]);								// define the location of this character in the cand, -1 if none
 			if (indx !== -1) {														// if the letter exists in the candidate, then...
-				let str1 = candidateSearchStr.slice(0, indx);						// cut everything before the letter
-				let str2 = candidateSearchStr.slice(indx + 1);						// cut everything after the letter
-				candidateSearchStr = str1 += str2;									// combine the strings to remove the letter
-				consCount++;	
+				let str1 = clone.slice(0, indx);									// cut everything before the letter
+				let str2 = clone.slice(indx + 1);									// cut everything after the letter
+				clone = str1 += str2;												// combine the strings to remove the letter
+				consMatches++;	
 					
 			} else {															// but if it can't be found in the candidate...
-				deviations++;														// ... then it increases total length
-				if (consCount > 0){ consBonus = consBonus + consCount };			// send consecutive bonus if it's built up
-				consCount = -1;														// reset consecutive bonus	
+				penalties++;														// ... then it increases total length
+				if (consMatches > 0){ candReward = candReward + consMatches };		// send consecutive bonus if it's built up
+				consMatches = -1;													// reset consecutive bonus	
 			};
 		};
-		if (consCount != -1) {consBonus = consBonus + consCount};					// settles any bonuses from the last loop
+		if (consMatches > 0) { candReward = candReward + consMatches };				// settles any bonuses from the last loop
 
 		let roundedLength = Math.round(100*											// rounds to hundredth place
-			(candidateSearchStr.length + deviations)*								// adds mismatches from the user input to the total length
-			((canLength - consBonus) / canLength))									// applies a bonus based on consecutive matches
+			(clone.length + penalties)*												// adds mismatches from the user input to the total length
+			((candLength - candReward) / candLength))								// applies a bonus based on consecutive matches
 			/100;																	// completes the rounding
 		let proportionalLength = Math.round(										// rounds to nearest integer
-			(1 - (roundedLength / (canLength + candidateSearchStr.length + deviations)))
+			(1 - (roundedLength / (candLength + clone.length + penalties)))
 			* 100);																	// final length as a percentage of start length + mismatches
 		
 		filteredCandidates.push(proportionalLength);								// send filtered candidate string to list
 	});
 	
-	bestMatch = Math.max(...filteredCandidates);									// find the candidate with the lowest number
-	let bestMatchLabel = adArr[filteredCandidates.indexOf(bestMatch)].slice(4);		// return the corresponding title without "ad: "
-	bestAdMatch = bestMatchLabel;													// global version of the above
-	adCorrectiveConf = filteredCandidates[filteredCandidates.indexOf(bestMatch)];	// sets adCorrectiveConf to the confidence rating
+	let bestMatch = Math.max(...candConfidences);									// find the candidate with the highest confidence
+	let bestMatchName = candidates[candConfidences.indexOf(bestMatch)].slice(4);	// return the corresponding title without "ad: "
+	bestAdMatch = bestMatchName;													// global version of the above
+	adCorrectiveConf = candConfidences[candConfidences.indexOf(bestMatch)];			// sets adCorrectiveConf to the confidence rating
 }
 
 // ░░░░░░░░░▓ IF A MATCH ISN'T FOUND, RUN AN ERROR MESSAGE AND END PROCESS
